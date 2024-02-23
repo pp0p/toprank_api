@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from "express";
-import sectionModel from "../Model/section.model";
+import serviceModel from "../Model/service.model";
 import upload from "../config/multer";
 import util from "util";
 import path from "path";
@@ -7,7 +7,7 @@ import fs from "fs";
 const unlinkAsync = util.promisify(fs.unlink);
 const router = Router();
 
-// created section
+// created service
 router.post(
   "/",
   upload.single("image"),
@@ -24,39 +24,28 @@ router.post(
         "://" +
         req.get("host") +
         `/public/${req.file?.filename}`;
-      const newScetion = new sectionModel({
+      const newScetion = new serviceModel({
         title,
         description,
         imageCover: imagePath,
       });
       await newScetion.save();
-      return res.status(201).send({ message: "تم انشاء قسم جديد بنجاح" });
+      return res.status(201).send({ message: "تم انشاء خدمة جديد بنجاح" });
     } catch (error: any) {
       next(error.message);
     }
   }
 );
-// get sections
-router.get(
-  "/",
-  async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | undefined> => {
-    try {
-      const sections = await sectionModel.find({});
-      if (sections.length === 0) {
-        return res.status(404).send({ message: "no section to show" });
-      }
-      return res.send(sections);
-    } catch (error: any) {
-      next(error.message);
-    }
+// get services
+router.get("/", async (req: Request, res: Response): Promise<Response> => {
+  const services = await serviceModel.find({});
+  if (services.length === 0) {
+    return res.status(404).send({ message: "no service to show" });
   }
-);
+  return res.send(services);
+});
 
-// update section
+// update service
 router.put(
   "/:id",
   upload.single("image"),
@@ -70,9 +59,9 @@ router.put(
       const id = req.params.id;
 
       // Find the device by ID
-      const section = await sectionModel.findById(id);
+      const service = await serviceModel.findById(id);
 
-      if (!section) {
+      if (!service) {
         return res.status(404).send({ message: "العنصر غير موجود" });
       }
 
@@ -82,18 +71,17 @@ router.put(
         `${req.protocol}://${req.get("host")}/public/${req.file.filename}`;
 
       // Update device
-      const updatedSection = await sectionModel.findByIdAndUpdate(
+      const updatedService = await serviceModel.findByIdAndUpdate(
         id,
         {
           title,
           description,
-
-          imageCover: imagePath || section.imageCover, // Use new image if provided, otherwise retain the old image
+          imageCover: imagePath || service.imageCover, // Use new image if provided, otherwise retain the old image
         },
         { new: true } // Return the updated document
       );
 
-      if (!updatedSection) {
+      if (!updatedService) {
         return res.status(500).send({ message: "فشل في تحديث العنصر" });
       }
 
@@ -103,37 +91,35 @@ router.put(
     }
   }
 );
-// remove section
-router.delete(
-  "/:id",
-  async (req: Request, res: Response, next: NextFunction) => {
-    const id = req.params.id;
+
+// remove service
+router.delete("/:id", async (req: Request, res: Response , next:NextFunction) => {
+  const id = req.params.id;
+
+  try {
+    const removedItem = await serviceModel.findByIdAndRemove(id);
+
+    if (!removedItem) {
+      return res.sendStatus(404);
+    }
+    const splitPath = removedItem.imageCover.split("/");
+
+    const imagePath = path.join(
+      __dirname,
+      "../../public",
+      splitPath[splitPath.length - 1]
+    );
 
     try {
-      const removedItem = await sectionModel.findByIdAndRemove(id);
-
-      if (!removedItem) {
-        return res.sendStatus(404);
-      }
-      const splitPath = removedItem.imageCover.split("/");
-
-      const imagePath = path.join(
-        __dirname,
-        "../../public",
-        splitPath[splitPath.length - 1]
-      );
-
-      try {
-        await unlinkAsync(imagePath);
-      } catch (err) {
-        console.error(err);
-        return res.status(500).send({ message: "Error deleting image file" });
-      }
-
-      return res.status(200).send({ message: "تم الحذف بنجاح" });
-    } catch (error: any) {
-      next(error.message);
+      await unlinkAsync(imagePath);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send({ message: "Error deleting image file" });
     }
+
+    return res.status(200).send({ message: "تم الحذف بنجاح" });
+  } catch (error: any) {
+    next(error.message);
   }
-);
+});
 export default router;

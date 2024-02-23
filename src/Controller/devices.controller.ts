@@ -1,13 +1,13 @@
 import { Router, Request, Response, NextFunction } from "express";
-import sectionModel from "../Model/section.model";
 import upload from "../config/multer";
 import util from "util";
 import path from "path";
 import fs from "fs";
+import devicesModel from "../Model/devices.model";
 const unlinkAsync = util.promisify(fs.unlink);
 const router = Router();
 
-// created section
+// created device
 router.post(
   "/",
   upload.single("image"),
@@ -17,46 +17,40 @@ router.post(
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {
-      const { title, description } = req.body;
+      const { title, description, price ,type} = req.body;
 
-      const imagePath =
+      const imagePath: string =
         req.protocol +
         "://" +
         req.get("host") +
         `/public/${req.file?.filename}`;
-      const newScetion = new sectionModel({
-        title,
+      const newDevice = new devicesModel({
+        name: title,
+        price,
         description,
-        imageCover: imagePath,
+        image: imagePath,
+        type
       });
-      await newScetion.save();
-      return res.status(201).send({ message: "تم انشاء قسم جديد بنجاح" });
+      await newDevice.save();
+      return res.status(201).send({ message: "تم إضافة جهاز جديد بنجاح" });
     } catch (error: any) {
-      next(error.message);
-    }
-  }
-);
-// get sections
-router.get(
-  "/",
-  async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | undefined> => {
-    try {
-      const sections = await sectionModel.find({});
-      if (sections.length === 0) {
-        return res.status(404).send({ message: "no section to show" });
-      }
-      return res.send(sections);
-    } catch (error: any) {
-      next(error.message);
-    }
-  }
-);
+      console.log(error);
 
-// update section
+      next(error.message);
+    }
+  }
+);
+// get members
+router.get("/", async (req: Request, res: Response): Promise<Response> => {
+  const team = await devicesModel.find({});
+  if (team.length === 0) {
+    return res.status(404).send({ message: "no device to show" });
+  }
+  return res.send(team);
+});
+
+// update device
+
 router.put(
   "/:id",
   upload.single("image"),
@@ -66,13 +60,13 @@ router.put(
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {
-      const { title, description } = req.body;
+      const { title, description, price } = req.body;
       const id = req.params.id;
 
       // Find the device by ID
-      const section = await sectionModel.findById(id);
+      const device = await devicesModel.findById(id);
 
-      if (!section) {
+      if (!device) {
         return res.status(404).send({ message: "العنصر غير موجود" });
       }
 
@@ -82,18 +76,18 @@ router.put(
         `${req.protocol}://${req.get("host")}/public/${req.file.filename}`;
 
       // Update device
-      const updatedSection = await sectionModel.findByIdAndUpdate(
+      const updatedDevice = await devicesModel.findByIdAndUpdate(
         id,
         {
-          title,
+          name: title,
           description,
-
-          imageCover: imagePath || section.imageCover, // Use new image if provided, otherwise retain the old image
+          price,
+          image: imagePath || device.image, // Use new image if provided, otherwise retain the old image
         },
         { new: true } // Return the updated document
       );
 
-      if (!updatedSection) {
+      if (!updatedDevice) {
         return res.status(500).send({ message: "فشل في تحديث العنصر" });
       }
 
@@ -103,19 +97,20 @@ router.put(
     }
   }
 );
-// remove section
+
+// remove device
 router.delete(
   "/:id",
   async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
 
     try {
-      const removedItem = await sectionModel.findByIdAndRemove(id);
+      const removedItem = await devicesModel.findByIdAndRemove(id);
 
       if (!removedItem) {
         return res.sendStatus(404);
       }
-      const splitPath = removedItem.imageCover.split("/");
+      const splitPath = removedItem.image.split("/");
 
       const imagePath = path.join(
         __dirname,

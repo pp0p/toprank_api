@@ -21,7 +21,7 @@ app.use(cookieParser());
 // router
 
 // app.use(errorMiddleware);
-app.use("/api", router);
+app.use("/", router);
 app.use("*", (req, res) => {
   res.sendStatus(404);
 });

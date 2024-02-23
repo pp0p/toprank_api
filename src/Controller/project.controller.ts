@@ -1,6 +1,10 @@
 import { Router, Request, Response, NextFunction } from "express";
 import projectModel from "../Model/project.model";
 import upload from "../config/multer";
+import util from "util";
+import path from "path";
+import fs from "fs";
+const unlinkAsync = util.promisify(fs.unlink);
 const router = Router();
 
 // created project
@@ -13,7 +17,7 @@ router.post(
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {
-      const { title, description } = req.body;
+      const { title } = req.body;
 
       const imagePath =
         req.protocol +
@@ -21,9 +25,8 @@ router.post(
         req.get("host") +
         `/public/${req.file?.filename}`;
       const newScetion = new projectModel({
-        title,
-        description,
-        imageCover: imagePath,
+        link:title,
+        logo: imagePath,
       });
       await newScetion.save();
       return res.status(201).send({ message: "تم انشاء مشروع جديد بنجاح" });
@@ -39,7 +42,7 @@ router.get("/", async (req: Request, res: Response): Promise<Response> => {
     if (projects.length === 0) {
       return res.status(404).send({ message: "no project to show" });
     }
-    return res.send(projects );
+    return res.send(projects);
   } catch (error: any) {
     console.log(error.message);
 
@@ -47,44 +50,76 @@ router.get("/", async (req: Request, res: Response): Promise<Response> => {
   }
 });
 
-// update project
 router.put(
   "/:id",
   upload.single("image"),
   async (req: Request, res: Response): Promise<Response> => {
-    const { title, description } = req.body;
-    const id = req.params.id;
-    const project: any = projectModel.find({ _id: id });
-    // image path
-    const imagePath =
-      req.protocol +
-      "://" +
-      req.get("host") +
-      `/public/${req.file ? req.file?.filename : project.imageCover}`;
-    //
-    const updateProject = await projectModel.findByIdAndUpdate(id, {
-      title,
-      description,
-      imageCover: req.file ? imagePath : project.imageCover || " ",
-    });
-    if (!updateProject) {
-      return res.status(404).send({ message: "project not found" });
+    try {
+      const { title } = req.body;
+      const id = req.params.id;
+
+      // Find the device by ID
+      const project = await projectModel.findById(id);
+
+      if (!project) {
+        return res.status(404).send({ message: "العنصر غير موجود" });
+      }
+
+      // Prepare the image path
+      const imagePath: string | undefined =
+        req.file &&
+        `${req.protocol}://${req.get("host")}/public/${req.file.filename}`;
+
+      // Update device
+      
+      const updateProject = await projectModel.findByIdAndUpdate(
+        id,
+        {
+          link:title,
+          logo: imagePath || project.logo, // Use new image if provided, otherwise retain the old image
+        },
+        { new: true } // Return the updated document
+      );
+
+
+      if (!updateProject) {
+        return res.status(500).send({ message: "فشل في تحديث العنصر" });
+      }
+
+      return res.status(200).send({ message: "تم تحديث العنصر بنجاح" });
+    } catch (error) {
+      return res.status(500).send({ message: "Internal Server Error" });
     }
-    return res.status(200).send({ message: "تم التحديث بنجاح" });
   }
 );
-
 // remove project
 router.delete("/:id", async (req: Request, res: Response) => {
   const id = req.params.id;
+
   try {
-    const project = await projectModel.findByIdAndRemove(id);
-    if (!project) {
+    const removedItem = await projectModel.findByIdAndRemove(id);
+
+    if (!removedItem) {
       return res.sendStatus(404);
-    } else {
-      return res.status(200).send({ message: "تم الحذف بنجاح" });
     }
+    const splitPath = removedItem.logo.split("/");
+
+    const imagePath = path.join(
+      __dirname,
+      "../../public",
+      splitPath[splitPath.length - 1]
+    );
+
+    try {
+      await unlinkAsync(imagePath);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send({ message: "Error deleting image file" });
+    }
+
+    return res.status(200).send({ message: "تم الحذف بنجاح" });
   } catch (err) {
+    console.error(err);
     return res.status(500).send({ message: "Internal Server Error" });
   }
 });

@@ -7,7 +7,7 @@ export const config = {
   mongoUri: String(process.env.MONGO_URI),
   port: Number(process.env.PORT) || 5000,
   corsOption: {
-    origin: ["*"],
+    origin: ["https://dashboard.toprankiq.com","https://toprankiq.com"],
     credentials: true,
   },
 };

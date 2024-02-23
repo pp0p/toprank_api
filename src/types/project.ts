@@ -1,4 +1,7 @@
-import ISection from "./sectios";
+import { Document } from "mongoose";
 
-interface IProject extends ISection {}
+interface IProject extends Document {
+  logo: string;
+  link: string;
+}
 export default IProject;

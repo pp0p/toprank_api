@@ -1,13 +1,15 @@
 import { Router, Request, Response, NextFunction } from "express";
-import sectionModel from "../Model/section.model";
+import systemModel from "../Model/system.model";
+import ISystems from "../types/system";
 import upload from "../config/multer";
 import util from "util";
 import path from "path";
 import fs from "fs";
 const unlinkAsync = util.promisify(fs.unlink);
+
 const router = Router();
 
-// created section
+// created system
 router.post(
   "/",
   upload.single("image"),
@@ -17,62 +19,49 @@ router.post(
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {
-      const { title, description } = req.body;
+      const { title, description, price,type } = req.body;
 
       const imagePath =
         req.protocol +
         "://" +
         req.get("host") +
         `/public/${req.file?.filename}`;
-      const newScetion = new sectionModel({
-        title,
+      const newScetion = new systemModel({
+        name: title,
+        price,
         description,
-        imageCover: imagePath,
+        image: imagePath,
+        type
       });
       await newScetion.save();
-      return res.status(201).send({ message: "تم انشاء قسم جديد بنجاح" });
+      return res.status(201).send({ message: "تم انشاء نظام جديد بنجاح" });
     } catch (error: any) {
       next(error.message);
     }
   }
 );
-// get sections
-router.get(
-  "/",
-  async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | undefined> => {
-    try {
-      const sections = await sectionModel.find({});
-      if (sections.length === 0) {
-        return res.status(404).send({ message: "no section to show" });
-      }
-      return res.send(sections);
-    } catch (error: any) {
-      next(error.message);
-    }
+// get systems
+router.get("/", async (req: Request, res: Response): Promise<Response> => {
+  const systems = await systemModel.find({});
+  if (systems.length === 0) {
+    return res.status(404).send({ message: "no system to show" });
   }
-);
+  return res.send(systems);
+});
 
-// update section
+// update system
 router.put(
   "/:id",
   upload.single("image"),
-  async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | undefined> => {
+  async (req: Request, res: Response): Promise<Response> => {
     try {
-      const { title, description } = req.body;
+      const { title, description, price } = req.body;
       const id = req.params.id;
 
       // Find the device by ID
-      const section = await sectionModel.findById(id);
+      const system = await systemModel.findById(id);
 
-      if (!section) {
+      if (!system) {
         return res.status(404).send({ message: "العنصر غير موجود" });
       }
 
@@ -82,40 +71,41 @@ router.put(
         `${req.protocol}://${req.get("host")}/public/${req.file.filename}`;
 
       // Update device
-      const updatedSection = await sectionModel.findByIdAndUpdate(
+      const updatedSystem = await systemModel.findByIdAndUpdate(
         id,
         {
-          title,
+          name: title,
           description,
-
-          imageCover: imagePath || section.imageCover, // Use new image if provided, otherwise retain the old image
+          price,
+          image: imagePath || system.image, // Use new image if provided, otherwise retain the old image
         },
         { new: true } // Return the updated document
       );
 
-      if (!updatedSection) {
+      if (!updatedSystem) {
         return res.status(500).send({ message: "فشل في تحديث العنصر" });
       }
 
       return res.status(200).send({ message: "تم تحديث العنصر بنجاح" });
-    } catch (error: any) {
-      next(error.message);
+    } catch (error) {
+      return res.status(500).send({ message: "Internal Server Error" });
     }
   }
 );
-// remove section
+// remove system
+
 router.delete(
   "/:id",
   async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
 
     try {
-      const removedItem = await sectionModel.findByIdAndRemove(id);
+      const removedItem = await systemModel.findByIdAndRemove(id);
 
       if (!removedItem) {
         return res.sendStatus(404);
       }
-      const splitPath = removedItem.imageCover.split("/");
+      const splitPath = removedItem.image.split("/");
 
       const imagePath = path.join(
         __dirname,

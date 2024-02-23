@@ -1,15 +1,11 @@
 import mongoose from "mongoose";
 import IProject from "../types/project";
 const projectSchema = new mongoose.Schema<IProject>({
-  title: {
+  link: {
     type: String,
     required: true,
   },
-  description: {
-    type: String,
-    required: true,
-  },
-  imageCover: {
+  logo: {
     type: String,
     required: true,
   },
