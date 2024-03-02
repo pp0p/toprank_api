@@ -21,5 +21,9 @@ const deviceSchema = new mongoose.Schema<IDevices>({
     type: String,
     required: true,
   },
+  betaLink: {
+    type: String,
+    required: true,
+  },
 });
 export default mongoose.model<IDevices>("devices", deviceSchema);

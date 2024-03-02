@@ -18,12 +18,7 @@ router.post(
   ): Promise<Response | undefined> => {
     try {
       const { title, description } = req.body;
-
-      const imagePath =
-        req.protocol +
-        "://" +
-        req.get("host") +
-        `/public/${req.file?.filename}`;
+      const imagePath: string = `https://api.toprankiq.com/public/${req.file?.filename}`;
       const newScetion = new sectionModel({
         title,
         description,
@@ -77,9 +72,7 @@ router.put(
       }
 
       // Prepare the image path
-      const imagePath: string | undefined =
-        req.file &&
-        `${req.protocol}://${req.get("host")}/public/${req.file.filename}`;
+      const imagePath: string | undefined = req.file ? `https://api.toprankiq.com/public/${req.file.filename}` : undefined;
 
       // Update device
       const updatedSection = await sectionModel.findByIdAndUpdate(
@@ -119,7 +112,7 @@ router.delete(
 
       const imagePath = path.join(
         __dirname,
-        "../../public",
+        "../public",
         splitPath[splitPath.length - 1]
       );
 

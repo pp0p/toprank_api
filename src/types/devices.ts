@@ -5,7 +5,8 @@ interface IDevices extends Document {
   description: string;
   image: string;
   price:number;
-  type:string
+  type:string;
+  betaLink:string
 }
 
 export default IDevices;

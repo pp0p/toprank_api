@@ -6,7 +6,29 @@ import fs from "fs";
 import devicesModel from "../Model/devices.model";
 const unlinkAsync = util.promisify(fs.unlink);
 const router = Router();
+// get single item
+router.get(
+  "/:id",
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | undefined> => {
+    const id = req.params.id;
 
+    try {
+      const device = await devicesModel.findById(id);
+
+      if (!device) {
+        return res.status(404).send({ message: "العنصر غير موجود" });
+      }
+
+      return res.send(device);
+    } catch (error: any) {
+      next(error.message);
+    }
+  }
+);
 // created device
 router.post(
   "/",
@@ -17,19 +39,16 @@ router.post(
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {
-      const { title, description, price ,type} = req.body;
+      const { title, description, price, type, betaLink } = req.body;
 
-      const imagePath: string =
-        req.protocol +
-        "://" +
-        req.get("host") +
-        `/public/${req.file?.filename}`;
+      const imagePath: string = `https://api.toprankiq.com/public/${req.file?.filename}`;
       const newDevice = new devicesModel({
         name: title,
         price,
         description,
         image: imagePath,
-        type
+        type,
+        betaLink,
       });
       await newDevice.save();
       return res.status(201).send({ message: "تم إضافة جهاز جديد بنجاح" });
@@ -71,9 +90,9 @@ router.put(
       }
 
       // Prepare the image path
-      const imagePath: string | undefined =
-        req.file &&
-        `${req.protocol}://${req.get("host")}/public/${req.file.filename}`;
+      const imagePath: string | undefined = req.file
+        ? `https://api.toprankiq.com/public/${req.file.filename}`
+        : undefined;
 
       // Update device
       const updatedDevice = await devicesModel.findByIdAndUpdate(

@@ -20,6 +20,10 @@ const systemsSchema = new mongoose.Schema<ISystems>({
   type:{
     type:String,
     required:true
+  },
+  betaLink:{
+    type:String,
+    required:true
   }
 });
 export default mongoose.model<ISystems>("systems", systemsSchema);

@@ -8,7 +8,28 @@ import fs from "fs";
 const unlinkAsync = util.promisify(fs.unlink);
 
 const router = Router();
+router.get(
+  "/:id",
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | undefined> => {
+    const id = req.params.id;
 
+    try {
+      const system = await systemModel.findById(id);
+
+      if (!system) {
+        return res.status(404).send({ message: "العنصر غير موجود" });
+      }
+
+      return res.send(system);
+    } catch (error: any) {
+      next(error.message);
+    }
+  }
+);
 // created system
 router.post(
   "/",
@@ -19,19 +40,16 @@ router.post(
     next: NextFunction
   ): Promise<Response | undefined> => {
     try {
-      const { title, description, price,type } = req.body;
+      const { title, description, price, type, betaLink } = req.body;
+      const imagePath: string = `https://api.toprankiq.com/public/${req.file?.filename}`;
 
-      const imagePath =
-        req.protocol +
-        "://" +
-        req.get("host") +
-        `/public/${req.file?.filename}`;
       const newScetion = new systemModel({
         name: title,
         price,
         description,
         image: imagePath,
-        type
+        type,
+        betaLink,
       });
       await newScetion.save();
       return res.status(201).send({ message: "تم انشاء نظام جديد بنجاح" });
@@ -53,7 +71,11 @@ router.get("/", async (req: Request, res: Response): Promise<Response> => {
 router.put(
   "/:id",
   upload.single("image"),
-  async (req: Request, res: Response): Promise<Response> => {
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | undefined> => {
     try {
       const { title, description, price } = req.body;
       const id = req.params.id;
@@ -66,9 +88,9 @@ router.put(
       }
 
       // Prepare the image path
-      const imagePath: string | undefined =
-        req.file &&
-        `${req.protocol}://${req.get("host")}/public/${req.file.filename}`;
+      const imagePath: string | undefined = req.file
+        ? `https://api.toprankiq.com/public/${req.file.filename}`
+        : undefined;
 
       // Update device
       const updatedSystem = await systemModel.findByIdAndUpdate(
@@ -87,8 +109,8 @@ router.put(
       }
 
       return res.status(200).send({ message: "تم تحديث العنصر بنجاح" });
-    } catch (error) {
-      return res.status(500).send({ message: "Internal Server Error" });
+    } catch (error: any) {
+      next(error.message);
     }
   }
 );

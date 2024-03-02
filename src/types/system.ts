@@ -5,6 +5,8 @@ interface ISystems extends Document{
   image: string;
   description: string;
   price:number;
-  type:string
+  type:string;
+  betaLink:string
+
 }
 export default ISystems;

@@ -1,6 +1,7 @@
 import { Document } from "mongoose";
 
 interface IClients extends Document {
-  number:number
+  number: number;
+  isEnabled: boolean;
 }
 export default IClients;

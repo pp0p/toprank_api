@@ -5,6 +5,10 @@ const clientsSchema = new mongoose.Schema<IClients>({
     type: Number,
     required: true,
   },
+  isEnabled: {
+    type: Boolean,
+    required: true,
+  },
 });
 
 export default mongoose.model<IClients>("clients", clientsSchema);
