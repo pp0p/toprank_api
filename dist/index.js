@@ -23,7 +23,7 @@ app.use((0, cors_1.default)(config_1.config.corsOption));
 app.use((0, cookie_parser_1.default)());
 // router
 // app.use(errorMiddleware);
-app.use("/api", index_1.default);
+app.use("/", index_1.default);
 app.use("*", function (req, res) {
     res.sendStatus(404);
 });

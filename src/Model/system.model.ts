@@ -21,7 +21,7 @@ const systemsSchema = new mongoose.Schema<ISystems>({
     type:String,
     required:true
   },
-  betaLink:{
+  betaVersion:{
     type:String,
     required:true
   }

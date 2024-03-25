@@ -6,6 +6,21 @@ import path from "path";
 import fs from "fs";
 const unlinkAsync = util.promisify(fs.unlink);
 const router = Router();
+router.get("/:id", async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+  try {
+    const id = req.params.id;
+    const section = await sectionModel.findById(id);
+
+    if (!section) {
+      return res.status(404).send({ message: "العنصر غير موجود" });
+    }
+
+    return res.send(section);
+  } catch (error: any) {
+    console.error(error.message);
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+});
 
 // created section
 router.post(
@@ -25,7 +40,7 @@ router.post(
         imageCover: imagePath,
       });
       await newScetion.save();
-      return res.status(201).send({ message: "تم انشاء قسم جديد بنجاح" });
+      return res.status(201).send({ message: "تم انشاء منشور جديد بنجاح" });
     } catch (error: any) {
       next(error.message);
     }

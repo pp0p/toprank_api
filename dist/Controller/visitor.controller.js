@@ -40,60 +40,52 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = require("express");
-var project_model_1 = __importDefault(require("../Model/project.model"));
-var section_model_1 = __importDefault(require("../Model/section.model"));
-var devices_model_1 = __importDefault(require("../Model/devices.model"));
-var system_model_1 = __importDefault(require("../Model/system.model"));
-var AdImage_model_1 = __importDefault(require("../Model/AdImage.model"));
-var client_model_1 = __importDefault(require("../Model/client.model"));
-var service_model_1 = __importDefault(require("../Model/service.model"));
-var mobileApp_model_1 = __importDefault(require("../Model/mobileApp.model"));
 var vistor_mode_1 = __importDefault(require("../Model/vistor.mode"));
 var router = (0, express_1.Router)();
+// GET all visitors
 router.get("/", function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, devices, systems, sections, projects, clients, ImageAds, services, visitors, mobileApps, adImagesByType, error_1;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var visitors, error_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0:
-                _b.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, Promise.all([
-                        devices_model_1.default.find({}, { __v: 0 }),
-                        system_model_1.default.find({}, { __v: 0 }),
-                        section_model_1.default.find({}, { _id: 0, __v: 0 }),
-                        project_model_1.default.find({}, { _id: 0, __v: 0 }),
-                        client_model_1.default.find({}, { _id: 0, __v: 0 }),
-                        AdImage_model_1.default.find({}, { _id: 0, __v: 0 }),
-                        service_model_1.default.find({}, { _id: 0, __v: 0 }),
-                        vistor_mode_1.default.find({}, { _id: 0, __v: 0 }),
-                        mobileApp_model_1.default.find({}, { __v: 0 }),
-                    ])];
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, vistor_mode_1.default.find({})];
             case 1:
-                _a = _b.sent(), devices = _a[0], systems = _a[1], sections = _a[2], projects = _a[3], clients = _a[4], ImageAds = _a[5], services = _a[6], visitors = _a[7], mobileApps = _a[8];
-                adImagesByType = ImageAds.reduce(function (acc, image) {
-                    var type = image.type;
-                    if (!acc[type]) {
-                        acc[type] = [];
-                    }
-                    acc[type].push(image);
-                    return acc;
-                }, {});
-                return [2 /*return*/, res.status(200).send({
-                        devices: devices,
-                        systems: systems,
-                        sections: sections,
-                        projects: projects,
-                        clients: clients[0],
-                        ImageAds: adImagesByType,
-                        services: services,
-                        visitors: visitors,
-                        mobileApps: mobileApps,
-                        // donwloadLink: downloadLink[0].link,
-                    })];
+                visitors = _a.sent();
+                if (visitors.length === 0) {
+                    return [2 /*return*/, res.status(404).send({ message: "No visitors found" })];
+                }
+                return [2 /*return*/, res.send(visitors)];
             case 2:
-                error_1 = _b.sent();
+                error_1 = _a.sent();
                 next(error_1.message);
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
+        }
+    });
+}); });
+// PUT request to update isEnabled
+router.put("/", function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var isEnabled, updatedVisitor, error_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                isEnabled = req.body.isEnabled;
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, vistor_mode_1.default.findOneAndUpdate({}, { isEnabled: isEnabled })];
+            case 2:
+                updatedVisitor = _a.sent();
+                if (!updatedVisitor) {
+                    return [2 /*return*/, res.status(404).json({ message: "No visitor found" })];
+                }
+                return [2 /*return*/, res.json({ message: "تم التحديث بنجاح" })];
+            case 3:
+                error_2 = _a.sent();
+                next(error_2.message);
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); });

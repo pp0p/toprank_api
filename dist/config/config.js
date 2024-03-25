@@ -13,7 +13,7 @@ exports.config = {
     mongoUri: String(process.env.MONGO_URI),
     port: Number(process.env.PORT) || 5000,
     corsOption: {
-        origin: ["http://localhost:5174", "http://localhost:5173"],
+        origin: ["https://dashboard.toprankiq.com", "https://toprankiq.com"],
         credentials: true,
     },
 };

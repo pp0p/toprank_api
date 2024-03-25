@@ -40,123 +40,126 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = require("express");
-var section_model_1 = __importDefault(require("../Model/section.model"));
 var multer_1 = __importDefault(require("../config/multer"));
 var util_1 = __importDefault(require("util"));
 var path_1 = __importDefault(require("path"));
 var fs_1 = __importDefault(require("fs"));
+var devices_model_1 = __importDefault(require("../Model/devices.model"));
 var unlinkAsync = util_1.default.promisify(fs_1.default.unlink);
 var router = (0, express_1.Router)();
+// get single item
 router.get("/:id", function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var id, section, error_1;
+    var id, device, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
                 id = req.params.id;
-                return [4 /*yield*/, section_model_1.default.findById(id)];
+                _a.label = 1;
             case 1:
-                section = _a.sent();
-                if (!section) {
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, devices_model_1.default.findById(id)];
+            case 2:
+                device = _a.sent();
+                if (!device) {
                     return [2 /*return*/, res.status(404).send({ message: "العنصر غير موجود" })];
                 }
-                return [2 /*return*/, res.send(section)];
-            case 2:
+                return [2 /*return*/, res.send(device)];
+            case 3:
                 error_1 = _a.sent();
-                console.error(error_1.message);
-                return [2 /*return*/, res.status(500).send({ message: "Internal Server Error" })];
-            case 3: return [2 /*return*/];
+                next(error_1.message);
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
-// created section
+// created device
 router.post("/", multer_1.default.single("image"), function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, title, description, imagePath, newScetion, error_2;
+    var _a, title, description, price, type, betaLink, imagePath, newDevice, error_2;
     var _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
                 _c.trys.push([0, 2, , 3]);
-                _a = req.body, title = _a.title, description = _a.description;
+                _a = req.body, title = _a.title, description = _a.description, price = _a.price, type = _a.type, betaLink = _a.betaLink;
                 imagePath = "https://api.toprankiq.com/public/".concat((_b = req.file) === null || _b === void 0 ? void 0 : _b.filename);
-                newScetion = new section_model_1.default({
-                    title: title,
+                newDevice = new devices_model_1.default({
+                    name: title,
+                    price: price,
                     description: description,
-                    imageCover: imagePath,
+                    image: imagePath,
+                    type: type,
+                    betaLink: betaLink,
                 });
-                return [4 /*yield*/, newScetion.save()];
+                return [4 /*yield*/, newDevice.save()];
             case 1:
                 _c.sent();
-                return [2 /*return*/, res.status(201).send({ message: "تم انشاء منشور جديد بنجاح" })];
+                return [2 /*return*/, res.status(201).send({ message: "تم إضافة جهاز جديد بنجاح" })];
             case 2:
                 error_2 = _c.sent();
+                console.log(error_2);
                 next(error_2.message);
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
     });
 }); });
-// get sections
-router.get("/", function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var sections, error_3;
+// get members
+router.get("/", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var team;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, section_model_1.default.find({})];
+            case 0: return [4 /*yield*/, devices_model_1.default.find({})];
             case 1:
-                sections = _a.sent();
-                if (sections.length === 0) {
-                    return [2 /*return*/, res.status(404).send({ message: "no section to show" })];
+                team = _a.sent();
+                if (team.length === 0) {
+                    return [2 /*return*/, res.status(404).send({ message: "no device to show" })];
                 }
-                return [2 /*return*/, res.send(sections)];
-            case 2:
-                error_3 = _a.sent();
-                next(error_3.message);
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                return [2 /*return*/, res.send(team)];
         }
     });
 }); });
-// update section
+// update device
 router.put("/:id", multer_1.default.single("image"), function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, title, description, id, section, imagePath, updatedSection, error_4;
+    var _a, title, description, price, id, device, imagePath, updatedDevice, error_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 3, , 4]);
-                _a = req.body, title = _a.title, description = _a.description;
+                _a = req.body, title = _a.title, description = _a.description, price = _a.price;
                 id = req.params.id;
-                return [4 /*yield*/, section_model_1.default.findById(id)];
+                return [4 /*yield*/, devices_model_1.default.findById(id)];
             case 1:
-                section = _b.sent();
-                if (!section) {
+                device = _b.sent();
+                if (!device) {
                     return [2 /*return*/, res.status(404).send({ message: "العنصر غير موجود" })];
                 }
-                imagePath = req.file ? "https://api.toprankiq.com/public/".concat(req.file.filename) : undefined;
-                return [4 /*yield*/, section_model_1.default.findByIdAndUpdate(id, {
-                        title: title,
+                imagePath = req.file
+                    ? "https://api.toprankiq.com/public/".concat(req.file.filename)
+                    : undefined;
+                return [4 /*yield*/, devices_model_1.default.findByIdAndUpdate(id, {
+                        name: title,
                         description: description,
-                        imageCover: imagePath || section.imageCover, // Use new image if provided, otherwise retain the old image
+                        price: price,
+                        image: imagePath || device.image, // Use new image if provided, otherwise retain the old image
                     }, { new: true } // Return the updated document
                     )];
             case 2:
-                updatedSection = _b.sent();
-                if (!updatedSection) {
+                updatedDevice = _b.sent();
+                if (!updatedDevice) {
                     return [2 /*return*/, res.status(500).send({ message: "فشل في تحديث العنصر" })];
                 }
                 return [2 /*return*/, res.status(200).send({ message: "تم تحديث العنصر بنجاح" })];
             case 3:
-                error_4 = _b.sent();
-                next(error_4.message);
+                error_3 = _b.sent();
+                next(error_3.message);
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
     });
 }); });
-// remove section
+// remove device
 router.delete("/:id", function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var id, removedItem, splitPath, imagePath, err_1, error_5;
+    var id, removedItem, splitPath, imagePath, err_1, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -164,14 +167,14 @@ router.delete("/:id", function (req, res, next) { return __awaiter(void 0, void 
                 _a.label = 1;
             case 1:
                 _a.trys.push([1, 7, , 8]);
-                return [4 /*yield*/, section_model_1.default.findByIdAndRemove(id)];
+                return [4 /*yield*/, devices_model_1.default.findByIdAndRemove(id)];
             case 2:
                 removedItem = _a.sent();
                 if (!removedItem) {
                     return [2 /*return*/, res.sendStatus(404)];
                 }
-                splitPath = removedItem.imageCover.split("/");
-                imagePath = path_1.default.join(__dirname, "../public", splitPath[splitPath.length - 1]);
+                splitPath = removedItem.image.split("/");
+                imagePath = path_1.default.join(__dirname, "../../public", splitPath[splitPath.length - 1]);
                 _a.label = 3;
             case 3:
                 _a.trys.push([3, 5, , 6]);
@@ -185,8 +188,8 @@ router.delete("/:id", function (req, res, next) { return __awaiter(void 0, void 
                 return [2 /*return*/, res.status(500).send({ message: "Error deleting image file" })];
             case 6: return [2 /*return*/, res.status(200).send({ message: "تم الحذف بنجاح" })];
             case 7:
-                error_5 = _a.sent();
-                next(error_5.message);
+                error_4 = _a.sent();
+                next(error_4.message);
                 return [3 /*break*/, 8];
             case 8: return [2 /*return*/];
         }

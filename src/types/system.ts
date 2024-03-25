@@ -6,7 +6,7 @@ interface ISystems extends Document{
   description: string;
   price:number;
   type:string;
-  betaLink:string
+  betaVersion:string
 
 }
 export default ISystems;

@@ -6,7 +6,7 @@ import util from "util";
 import path from "path";
 import fs from "fs";
 const unlinkAsync = util.promisify(fs.unlink);
-
+import { config } from "../config/config";
 const router = Router();
 router.get(
   "/:id",
@@ -31,9 +31,13 @@ router.get(
   }
 );
 // created system
+
 router.post(
   "/",
-  upload.single("image"),
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "exeFile", maxCount: 1 },
+  ]), // Use upload.fields to handle multiple files
   async (
     req: Request,
     res: Response,
@@ -41,7 +45,20 @@ router.post(
   ): Promise<Response | undefined> => {
     try {
       const { title, description, price, type, betaLink } = req.body;
-      const imagePath: string = `https://api.toprankiq.com/public/${req.file?.filename}`;
+
+      // Determine the host based on the request
+
+      const host = req.get("host");
+      const basePath =
+        req.hostname === "localhost"
+          ? `http://localhost:${config.port}/public/`
+          : "https://api.toprankiq.com/public/";
+
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+      // Construct image and exe file paths using the determined host
+      const imagePath: string = `${basePath}${files["image"][0]?.filename}`;
+      const exeFilePath: string = `${basePath}${files["exeFile"][0]?.filename}`;
 
       const newScetion = new systemModel({
         name: title,
@@ -49,7 +66,7 @@ router.post(
         description,
         image: imagePath,
         type,
-        betaLink,
+        betaVersion: exeFilePath,
       });
       await newScetion.save();
       return res.status(201).send({ message: "تم انشاء نظام جديد بنجاح" });
@@ -70,7 +87,10 @@ router.get("/", async (req: Request, res: Response): Promise<Response> => {
 // update system
 router.put(
   "/:id",
-  upload.single("image"),
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "exeFile", maxCount: 1 },
+  ]), // Use upload.fields to handle multiple files
   async (
     req: Request,
     res: Response,
@@ -87,10 +107,18 @@ router.put(
         return res.status(404).send({ message: "العنصر غير موجود" });
       }
 
-      // Prepare the image path
-      const imagePath: string | undefined = req.file
-        ? `https://api.toprankiq.com/public/${req.file.filename}`
-        : undefined;
+      // Determine the host based on the request
+      const host = req.get("host");
+      const basePath =
+        req.hostname === "localhost"
+          ? `http://localhost:${config.port}/public/`
+          : "https://api.toprankiq.com/public/";
+
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+      // Construct image and exe file paths using the determined host
+      const imagePath: string = `${basePath}${files["image"][0]?.filename}`;
+      const exeFilePath: string = `${basePath}${files["exeFile"][0]?.filename}`;
 
       // Update device
       const updatedSystem = await systemModel.findByIdAndUpdate(
@@ -100,6 +128,7 @@ router.put(
           description,
           price,
           image: imagePath || system.image, // Use new image if provided, otherwise retain the old image
+          betaVersion: exeFilePath || system.betaVersion, // Use new exe file if provided, otherwise retain the old exe file
         },
         { new: true } // Return the updated document
       );

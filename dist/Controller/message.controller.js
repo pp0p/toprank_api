@@ -107,7 +107,7 @@ router.get("/", function (req, res, next) { return __awaiter(void 0, void 0, voi
                 if (messages.length === 0) {
                     return [2 /*return*/, res.status(404).send({ message: "There are no messages" })];
                 }
-                res.status(200).send({ messages: messages });
+                res.status(200).send(messages);
                 return [3 /*break*/, 3];
             case 2:
                 error_2 = _a.sent();

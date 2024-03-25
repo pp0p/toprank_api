@@ -7,6 +7,22 @@ import fs from "fs";
 const unlinkAsync = util.promisify(fs.unlink);
 const router = Router();
 
+router.get("/:id", async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+  try {
+    const id = req.params.id;
+    const service = await serviceModel.findById(id);
+
+    if (!service) {
+      return res.status(404).send({ message: "العنصر غير موجود" });
+    }
+
+    return res.send(service);
+  } catch (error: any) {
+    console.error(error.message);
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+});
+
 // created service
 router.post(
   "/",
@@ -63,7 +79,7 @@ router.put(
       }
 
       // Prepare the image path
-      const imagePath: string = `https://api.toprankiq.com/public/${req.file?.filename}`;
+      const imagePath: string | undefined = req.file ? `https://api.toprankiq.com/public/${req.file.filename}` : undefined;
 
 
       // Update device

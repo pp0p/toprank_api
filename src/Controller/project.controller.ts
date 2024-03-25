@@ -46,7 +46,21 @@ router.get("/", async (req: Request, res: Response): Promise<Response> => {
     return res.status(500).send({ message: "Internal Server Error" });
   }
 });
+router.get("/:id", async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const id = req.params.id;
+    const project = await projectModel.findById(id);
 
+    if (!project) {
+      return res.status(404).send({ message: "العنصر غير موجود" });
+    }
+
+    return res.send(project);
+  } catch (error: any) {
+    console.error(error.message);
+    return res.status(500).send({ message: "Internal Server Error" });
+  }
+});
 router.put(
   "/:id",
   upload.single("image"),
@@ -63,7 +77,7 @@ router.put(
       }
 
       // Prepare the image path
-      const imagePath: string = `https://api.toprankiq.com/public/${req.file?.filename}`;
+      const imagePath: string | undefined = req.file ? `https://api.toprankiq.com/public/${req.file.filename}` : undefined;
 
 
       // Update device

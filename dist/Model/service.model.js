@@ -4,14 +4,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = __importDefault(require("mongoose"));
-var projectSchema = new mongoose_1.default.Schema({
-    link: {
+var servicesSchema = new mongoose_1.default.Schema({
+    title: {
         type: String,
         required: true,
     },
-    logo: {
+    description: {
+        type: String,
+        required: true,
+    },
+    imageCover: {
         type: String,
         required: true,
     },
 });
-exports.default = mongoose_1.default.model("projects", projectSchema);
+exports.default = mongoose_1.default.model("services", servicesSchema);

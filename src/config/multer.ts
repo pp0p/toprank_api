@@ -17,20 +17,23 @@ const storage = multer.diskStorage({
     cb(null, destinationFolder);
   },
   filename: (req: Request, file: Express.Multer.File, cb: Function) => {
-    // Replace spaces and parentheses with underscores in the filename
-    const sanitizedFileName = file.originalname.replace(/[^\w\s]/gi, "_");
+    // Get the file extension
+    const fileExtension = file.originalname.split('.').pop();
+    // Replace characters other than alphanumeric and spaces with underscores in the filename
+    const sanitizedFileName = file.originalname.replace(/[^\w\s.]/gi, "_");
     // Specify the filename for uploaded files
     cb(null, `${Date.now()}-${sanitizedFileName}`);
   },
 });
 
+
 // Create Multer instance with the storage configuration
 const upload = multer({
   storage: storage,
   fileFilter: (req: Request, file: Express.Multer.File, cb: Function) => {
-    if (!file.originalname.match(/\.(png|jpg|jpeg)$/)) {
-      // upload only png and jpg format
-      return cb(new Error("Please upload an image with PNG, JPG, or JPEG format."));
+    if (!file.originalname.match(/\.(png|jpg|jpeg|exe)$/)) {
+      // upload only png, jpg, jpeg, and exe format
+      return cb(new Error("Please upload an image with PNG, JPG, JPEG, or EXE format."));
     }
     cb(undefined, true);
   },
@@ -38,4 +41,3 @@ const upload = multer({
 
 // Export the Multer middleware
 export default upload;
-

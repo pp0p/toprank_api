@@ -40,123 +40,145 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = require("express");
-var section_model_1 = __importDefault(require("../Model/section.model"));
+var system_model_1 = __importDefault(require("../Model/system.model"));
 var multer_1 = __importDefault(require("../config/multer"));
 var util_1 = __importDefault(require("util"));
 var path_1 = __importDefault(require("path"));
 var fs_1 = __importDefault(require("fs"));
 var unlinkAsync = util_1.default.promisify(fs_1.default.unlink);
+var config_1 = require("../config/config");
 var router = (0, express_1.Router)();
 router.get("/:id", function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var id, section, error_1;
+    var id, system, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
                 id = req.params.id;
-                return [4 /*yield*/, section_model_1.default.findById(id)];
+                _a.label = 1;
             case 1:
-                section = _a.sent();
-                if (!section) {
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, system_model_1.default.findById(id)];
+            case 2:
+                system = _a.sent();
+                if (!system) {
                     return [2 /*return*/, res.status(404).send({ message: "العنصر غير موجود" })];
                 }
-                return [2 /*return*/, res.send(section)];
-            case 2:
+                return [2 /*return*/, res.send(system)];
+            case 3:
                 error_1 = _a.sent();
-                console.error(error_1.message);
-                return [2 /*return*/, res.status(500).send({ message: "Internal Server Error" })];
-            case 3: return [2 /*return*/];
+                next(error_1.message);
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
-// created section
-router.post("/", multer_1.default.single("image"), function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, title, description, imagePath, newScetion, error_2;
-    var _b;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+// created system
+router.post("/", multer_1.default.fields([
+    { name: "image", maxCount: 1 },
+    { name: "exeFile", maxCount: 1 },
+]), // Use upload.fields to handle multiple files
+function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, title, description, price, type, betaLink, host, basePath, files, imagePath, exeFilePath, newScetion, error_2;
+    var _b, _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
-                _c.trys.push([0, 2, , 3]);
-                _a = req.body, title = _a.title, description = _a.description;
-                imagePath = "https://api.toprankiq.com/public/".concat((_b = req.file) === null || _b === void 0 ? void 0 : _b.filename);
-                newScetion = new section_model_1.default({
-                    title: title,
+                _d.trys.push([0, 2, , 3]);
+                _a = req.body, title = _a.title, description = _a.description, price = _a.price, type = _a.type, betaLink = _a.betaLink;
+                host = req.get("host");
+                basePath = req.hostname === "localhost"
+                    ? "http://localhost:".concat(config_1.config.port, "/public/")
+                    : "https://api.toprankiq.com/public/";
+                files = req.files;
+                imagePath = "".concat(basePath).concat((_b = files["image"][0]) === null || _b === void 0 ? void 0 : _b.filename);
+                exeFilePath = "".concat(basePath).concat((_c = files["exeFile"][0]) === null || _c === void 0 ? void 0 : _c.filename);
+                newScetion = new system_model_1.default({
+                    name: title,
+                    price: price,
                     description: description,
-                    imageCover: imagePath,
+                    image: imagePath,
+                    type: type,
+                    betaVersion: exeFilePath,
                 });
                 return [4 /*yield*/, newScetion.save()];
             case 1:
-                _c.sent();
-                return [2 /*return*/, res.status(201).send({ message: "تم انشاء منشور جديد بنجاح" })];
+                _d.sent();
+                return [2 /*return*/, res.status(201).send({ message: "تم انشاء نظام جديد بنجاح" })];
             case 2:
-                error_2 = _c.sent();
+                error_2 = _d.sent();
                 next(error_2.message);
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
     });
 }); });
-// get sections
-router.get("/", function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var sections, error_3;
+// get systems
+router.get("/", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var systems;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, section_model_1.default.find({})];
+            case 0: return [4 /*yield*/, system_model_1.default.find({})];
             case 1:
-                sections = _a.sent();
-                if (sections.length === 0) {
-                    return [2 /*return*/, res.status(404).send({ message: "no section to show" })];
+                systems = _a.sent();
+                if (systems.length === 0) {
+                    return [2 /*return*/, res.status(404).send({ message: "no system to show" })];
                 }
-                return [2 /*return*/, res.send(sections)];
-            case 2:
-                error_3 = _a.sent();
-                next(error_3.message);
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                return [2 /*return*/, res.send(systems)];
         }
     });
 }); });
-// update section
-router.put("/:id", multer_1.default.single("image"), function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, title, description, id, section, imagePath, updatedSection, error_4;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+// update system
+router.put("/:id", multer_1.default.fields([
+    { name: "image", maxCount: 1 },
+    { name: "exeFile", maxCount: 1 },
+]), // Use upload.fields to handle multiple files
+function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, title, description, price, id, system, host, basePath, files, imagePath, exeFilePath, updatedSystem, error_3;
+    var _b, _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
-                _a = req.body, title = _a.title, description = _a.description;
+                _d.trys.push([0, 3, , 4]);
+                _a = req.body, title = _a.title, description = _a.description, price = _a.price;
                 id = req.params.id;
-                return [4 /*yield*/, section_model_1.default.findById(id)];
+                return [4 /*yield*/, system_model_1.default.findById(id)];
             case 1:
-                section = _b.sent();
-                if (!section) {
+                system = _d.sent();
+                if (!system) {
                     return [2 /*return*/, res.status(404).send({ message: "العنصر غير موجود" })];
                 }
-                imagePath = req.file ? "https://api.toprankiq.com/public/".concat(req.file.filename) : undefined;
-                return [4 /*yield*/, section_model_1.default.findByIdAndUpdate(id, {
-                        title: title,
+                host = req.get("host");
+                basePath = req.hostname === "localhost"
+                    ? "http://localhost:".concat(config_1.config.port, "/public/")
+                    : "https://api.toprankiq.com/public/";
+                files = req.files;
+                imagePath = "".concat(basePath).concat((_b = files["image"][0]) === null || _b === void 0 ? void 0 : _b.filename);
+                exeFilePath = "".concat(basePath).concat((_c = files["exeFile"][0]) === null || _c === void 0 ? void 0 : _c.filename);
+                return [4 /*yield*/, system_model_1.default.findByIdAndUpdate(id, {
+                        name: title,
                         description: description,
-                        imageCover: imagePath || section.imageCover, // Use new image if provided, otherwise retain the old image
+                        price: price,
+                        image: imagePath || system.image,
+                        betaVersion: exeFilePath || system.betaVersion, // Use new exe file if provided, otherwise retain the old exe file
                     }, { new: true } // Return the updated document
                     )];
             case 2:
-                updatedSection = _b.sent();
-                if (!updatedSection) {
+                updatedSystem = _d.sent();
+                if (!updatedSystem) {
                     return [2 /*return*/, res.status(500).send({ message: "فشل في تحديث العنصر" })];
                 }
                 return [2 /*return*/, res.status(200).send({ message: "تم تحديث العنصر بنجاح" })];
             case 3:
-                error_4 = _b.sent();
-                next(error_4.message);
+                error_3 = _d.sent();
+                next(error_3.message);
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
     });
 }); });
-// remove section
+// remove system
 router.delete("/:id", function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var id, removedItem, splitPath, imagePath, err_1, error_5;
+    var id, removedItem, splitPath, imagePath, err_1, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -164,14 +186,14 @@ router.delete("/:id", function (req, res, next) { return __awaiter(void 0, void 
                 _a.label = 1;
             case 1:
                 _a.trys.push([1, 7, , 8]);
-                return [4 /*yield*/, section_model_1.default.findByIdAndRemove(id)];
+                return [4 /*yield*/, system_model_1.default.findByIdAndRemove(id)];
             case 2:
                 removedItem = _a.sent();
                 if (!removedItem) {
                     return [2 /*return*/, res.sendStatus(404)];
                 }
-                splitPath = removedItem.imageCover.split("/");
-                imagePath = path_1.default.join(__dirname, "../public", splitPath[splitPath.length - 1]);
+                splitPath = removedItem.image.split("/");
+                imagePath = path_1.default.join(__dirname, "../../public", splitPath[splitPath.length - 1]);
                 _a.label = 3;
             case 3:
                 _a.trys.push([3, 5, , 6]);
@@ -185,8 +207,8 @@ router.delete("/:id", function (req, res, next) { return __awaiter(void 0, void 
                 return [2 /*return*/, res.status(500).send({ message: "Error deleting image file" })];
             case 6: return [2 /*return*/, res.status(200).send({ message: "تم الحذف بنجاح" })];
             case 7:
-                error_5 = _a.sent();
-                next(error_5.message);
+                error_4 = _a.sent();
+                next(error_4.message);
                 return [3 /*break*/, 8];
             case 8: return [2 /*return*/];
         }

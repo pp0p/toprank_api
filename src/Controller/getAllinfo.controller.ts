@@ -7,6 +7,7 @@ import AdImageModel from "../Model/AdImage.model";
 import clientModel from "../Model/client.model";
 import serviceModel from "../Model/service.model";
 import betaDownloadLinkModel from "../Model/betaDownloadLink.model";
+import MobileAppModel from "../Model/mobileApp.model";
 import VisitorModel from "../Model/vistor.mode";
 
 const router = Router();
@@ -28,6 +29,7 @@ router.get(
         ImageAds,
         services,
         visitors,
+        mobileApps,
       ] = await Promise.all([
         devicesModel.find({}, { __v: 0 }),
         systemModel.find({}, { __v: 0 }),
@@ -37,17 +39,21 @@ router.get(
         AdImageModel.find({}, { _id: 0, __v: 0 }),
         serviceModel.find({}, { _id: 0, __v: 0 }),
         VisitorModel.find({}, { _id: 0, __v: 0 }),
+        MobileAppModel.find({}, {__v: 0 }),
       ]);
 
       // Group AdImageModel by type
-      const adImagesByType = ImageAds.reduce((acc: Record<string, any[]>, image: any) => {
-        const type = image.type;
-        if (!acc[type]) {
-          acc[type] = [];
-        }
-        acc[type].push(image);
-        return acc;
-      }, {});
+      const adImagesByType = ImageAds.reduce(
+        (acc: Record<string, any[]>, image: any) => {
+          const type = image.type;
+          if (!acc[type]) {
+            acc[type] = [];
+          }
+          acc[type].push(image);
+          return acc;
+        },
+        {}
+      );
 
       return res.status(200).send({
         devices,
@@ -58,6 +64,7 @@ router.get(
         ImageAds: adImagesByType,
         services,
         visitors,
+        mobileApps,
         // donwloadLink: downloadLink[0].link,
       });
     } catch (error: any) {

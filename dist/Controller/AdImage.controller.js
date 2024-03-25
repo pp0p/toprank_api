@@ -40,123 +40,64 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = require("express");
-var section_model_1 = __importDefault(require("../Model/section.model"));
 var multer_1 = __importDefault(require("../config/multer"));
 var util_1 = __importDefault(require("util"));
 var path_1 = __importDefault(require("path"));
 var fs_1 = __importDefault(require("fs"));
 var unlinkAsync = util_1.default.promisify(fs_1.default.unlink);
+var AdImage_model_1 = __importDefault(require("../Model/AdImage.model"));
 var router = (0, express_1.Router)();
-router.get("/:id", function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var id, section, error_1;
+router.get("/", function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var ads, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                id = req.params.id;
-                return [4 /*yield*/, section_model_1.default.findById(id)];
+                return [4 /*yield*/, AdImage_model_1.default.find({})];
             case 1:
-                section = _a.sent();
-                if (!section) {
-                    return [2 /*return*/, res.status(404).send({ message: "العنصر غير موجود" })];
+                ads = _a.sent();
+                if (ads.length === 0) {
+                    return [2 /*return*/, res.status(404).send({ message: "no ads to show" })];
                 }
-                return [2 /*return*/, res.send(section)];
+                return [2 /*return*/, res.send(ads)];
             case 2:
                 error_1 = _a.sent();
-                console.error(error_1.message);
-                return [2 /*return*/, res.status(500).send({ message: "Internal Server Error" })];
+                next(error_1.message);
+                return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
     });
 }); });
-// created section
 router.post("/", multer_1.default.single("image"), function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, title, description, imagePath, newScetion, error_2;
-    var _b;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var imagePath, type, newAd, error_2;
+    var _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _c.trys.push([0, 2, , 3]);
-                _a = req.body, title = _a.title, description = _a.description;
-                imagePath = "https://api.toprankiq.com/public/".concat((_b = req.file) === null || _b === void 0 ? void 0 : _b.filename);
-                newScetion = new section_model_1.default({
-                    title: title,
-                    description: description,
-                    imageCover: imagePath,
+                _b.trys.push([0, 2, , 3]);
+                imagePath = "https://api.toprankiq.com/public/".concat((_a = req.file) === null || _a === void 0 ? void 0 : _a.filename);
+                type = req.body.type;
+                newAd = new AdImage_model_1.default({
+                    path: imagePath,
+                    type: type,
                 });
-                return [4 /*yield*/, newScetion.save()];
+                return [4 /*yield*/, newAd.save()];
             case 1:
-                _c.sent();
-                return [2 /*return*/, res.status(201).send({ message: "تم انشاء منشور جديد بنجاح" })];
+                _b.sent();
+                res.status(201).send({
+                    message: "تمت الاضافة بنجاح",
+                });
+                return [3 /*break*/, 3];
             case 2:
-                error_2 = _c.sent();
+                error_2 = _b.sent();
                 next(error_2.message);
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
     });
 }); });
-// get sections
-router.get("/", function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var sections, error_3;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, section_model_1.default.find({})];
-            case 1:
-                sections = _a.sent();
-                if (sections.length === 0) {
-                    return [2 /*return*/, res.status(404).send({ message: "no section to show" })];
-                }
-                return [2 /*return*/, res.send(sections)];
-            case 2:
-                error_3 = _a.sent();
-                next(error_3.message);
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
-        }
-    });
-}); });
-// update section
-router.put("/:id", multer_1.default.single("image"), function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, title, description, id, section, imagePath, updatedSection, error_4;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 3, , 4]);
-                _a = req.body, title = _a.title, description = _a.description;
-                id = req.params.id;
-                return [4 /*yield*/, section_model_1.default.findById(id)];
-            case 1:
-                section = _b.sent();
-                if (!section) {
-                    return [2 /*return*/, res.status(404).send({ message: "العنصر غير موجود" })];
-                }
-                imagePath = req.file ? "https://api.toprankiq.com/public/".concat(req.file.filename) : undefined;
-                return [4 /*yield*/, section_model_1.default.findByIdAndUpdate(id, {
-                        title: title,
-                        description: description,
-                        imageCover: imagePath || section.imageCover, // Use new image if provided, otherwise retain the old image
-                    }, { new: true } // Return the updated document
-                    )];
-            case 2:
-                updatedSection = _b.sent();
-                if (!updatedSection) {
-                    return [2 /*return*/, res.status(500).send({ message: "فشل في تحديث العنصر" })];
-                }
-                return [2 /*return*/, res.status(200).send({ message: "تم تحديث العنصر بنجاح" })];
-            case 3:
-                error_4 = _b.sent();
-                next(error_4.message);
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
-        }
-    });
-}); });
-// remove section
 router.delete("/:id", function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var id, removedItem, splitPath, imagePath, err_1, error_5;
+    var id, removedItem, splitPath, imagePath, err_1, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -164,14 +105,14 @@ router.delete("/:id", function (req, res, next) { return __awaiter(void 0, void 
                 _a.label = 1;
             case 1:
                 _a.trys.push([1, 7, , 8]);
-                return [4 /*yield*/, section_model_1.default.findByIdAndRemove(id)];
+                return [4 /*yield*/, AdImage_model_1.default.findByIdAndRemove(id)];
             case 2:
                 removedItem = _a.sent();
                 if (!removedItem) {
                     return [2 /*return*/, res.sendStatus(404)];
                 }
-                splitPath = removedItem.imageCover.split("/");
-                imagePath = path_1.default.join(__dirname, "../public", splitPath[splitPath.length - 1]);
+                splitPath = removedItem.path.split("/");
+                imagePath = path_1.default.join(__dirname, "../../public", splitPath[splitPath.length - 1]);
                 _a.label = 3;
             case 3:
                 _a.trys.push([3, 5, , 6]);
@@ -185,8 +126,8 @@ router.delete("/:id", function (req, res, next) { return __awaiter(void 0, void 
                 return [2 /*return*/, res.status(500).send({ message: "Error deleting image file" })];
             case 6: return [2 /*return*/, res.status(200).send({ message: "تم الحذف بنجاح" })];
             case 7:
-                error_5 = _a.sent();
-                next(error_5.message);
+                error_3 = _a.sent();
+                next(error_3.message);
                 return [3 /*break*/, 8];
             case 8: return [2 /*return*/];
         }

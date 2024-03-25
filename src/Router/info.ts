@@ -7,6 +7,7 @@ import serviceController from "../Controller/service.controller";
 import clientsController from "../Controller/clients.controller";
 import AdImageController from "../Controller/AdImage.controller";
 import visitorController from "../Controller/visitor.controller";
+import mobileAppController from "../Controller/mobileApp.controller";
 const router = Router();
 
 router.use("/device", devicesController);
@@ -17,5 +18,5 @@ router.use("/clients", clientsController);
 router.use("/project", projectController);
 router.use("/service", serviceController);
 router.use("/AdImage", AdImageController);
-
+router.use("/mobileApp", mobileAppController);
 export default router;
